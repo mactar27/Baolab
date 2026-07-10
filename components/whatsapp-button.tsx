@@ -5,7 +5,21 @@ import { useState, useEffect } from "react"
 
 export function WhatsAppButton() {
   const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
+
+  // Ensure client-side only execution to prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+    const timer = setTimeout(() => {
+      setShowTooltip(true)
+    }, 4000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (!mounted) {
+    return null
+  }
 
   // Hide the widget on admin dashboard routes
   if (pathname?.startsWith("/admin")) {
@@ -16,14 +30,6 @@ export function WhatsAppButton() {
   const message = "Bonjour BAOLAB INFO, je souhaiterais obtenir des informations sur vos produits."
   const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
 
-  // Show the chat bubble tooltip 3 seconds after loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowTooltip(true)
-    }, 3000)
-    return () => clearTimeout(timer)
-  }, [])
-
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 font-sans no-print">
       {showTooltip && (
@@ -32,7 +38,7 @@ export function WhatsAppButton() {
             {/* Close button */}
             <button 
               onClick={() => setShowTooltip(false)}
-              className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               aria-label="Fermer"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-3.5 h-3.5">
@@ -59,7 +65,7 @@ export function WhatsAppButton() {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setShowTooltip(false)}
-              className="mt-1 flex items-center justify-center gap-1.5 bg-primary text-primary-foreground font-semibold py-2 px-3 rounded-lg hover:opacity-90 transition-all text-[11px] uppercase tracking-wide"
+              className="mt-1 flex items-center justify-center gap-1.5 bg-primary text-primary-foreground font-semibold py-2 px-3 rounded-lg hover:opacity-90 transition-all text-[11px] uppercase tracking-wide text-center"
             >
               Discuter sur WhatsApp
             </a>
@@ -73,14 +79,14 @@ export function WhatsAppButton() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Discuter avec BAOLAB INFO sur WhatsApp"
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 border border-primary/20"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 border border-primary/20 cursor-pointer"
       >
         <svg 
-          viewBox="0 0 24 24" 
-          className="w-7 h-7 fill-current"
+          viewBox="0 0 448 512" 
+          className="w-6 h-6 fill-current text-primary-foreground"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.588-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.503-5.729-1.458L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.859-4.37 9.862-9.743.001-2.602-1.01-5.05-2.846-6.89C16.65 2.13 14.214.995 11.617.995 6.183.995 1.76 5.364 1.757 10.74c-.001 1.674.437 3.313 1.27 4.721L2.035 21.8l6.612-1.737-.09-.053-.91-.556zm1.39-10.432c-.11-.24-.22-.24-.33-.24h-.56c-.19 0-.51.07-.78.37-.27.3-1.03.99-1.03 2.42s1.01 2.82 1.15 3c.14.18 1.97 3.01 4.78 4.22 2.81 1.21 2.81.81 3.32.76.51-.05 1.63-.67 1.86-1.32.23-.65.23-1.21.16-1.32-.07-.11-.26-.18-.56-.33-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.34.22-.64.07-.3-.15-1.27-.47-2.42-1.5-1-.89-1.67-1.99-1.87-2.33-.2-.33-.02-.51.13-.66.14-.13.3-.34.45-.51.15-.17.2-.29.3-.49.1-.2.05-.37-.02-.52-.08-.15-.69-1.67-.95-2.29z"/>
+          <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
         </svg>
       </a>
     </div>
