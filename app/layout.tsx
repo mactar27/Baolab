@@ -5,7 +5,6 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { CartProvider } from '@/components/cart-context'
 import { CartDrawer } from '@/components/cart-drawer'
 import { ThemeProvider } from '@/components/theme-provider'
-import { WhatsAppButton } from '@/components/whatsapp-button'
 import './globals.css'
 
 const geistSans = Geist({
@@ -68,7 +67,6 @@ export default function RootLayout({
           <CartProvider>
             {children}
             <CartDrawer />
-            <WhatsAppButton />
           </CartProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}

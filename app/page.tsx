@@ -5,6 +5,7 @@ import { CatalogSection } from "@/components/catalog-section"
 import { Services } from "@/components/services"
 import { LocationMap } from "@/components/location-map"
 import { SiteFooter } from "@/components/site-footer"
+import { WhatsAppButton } from "@/components/whatsapp-button"
 import { getProductsFromDb, getSetting } from "@/lib/db"
 
 export const dynamic = "force-dynamic"
@@ -69,6 +70,7 @@ export default async function HomePage() {
         </div>
       </main>
       <SiteFooter />
+      <WhatsAppButton />
     </div>
   )
 }

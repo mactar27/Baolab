@@ -1,10 +1,8 @@
 "use client"
 
-import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 
 export function WhatsAppButton() {
-  const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
 
@@ -18,11 +16,6 @@ export function WhatsAppButton() {
   }, [])
 
   if (!mounted) {
-    return null
-  }
-
-  // Hide the widget on admin dashboard routes
-  if (pathname?.startsWith("/admin")) {
     return null
   }
 
