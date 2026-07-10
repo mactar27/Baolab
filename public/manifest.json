@@ -1,0 +1,28 @@
+{
+  "name": "BAOLAB INFO",
+  "short_name": "BAOLAB INFO",
+  "description": "Boutique BAOLAB INFO - Téléphones, ordinateurs & accessoires",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e3a9e",
+  "theme_color": "#1e3a9e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/apple-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-light-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-dark-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    }
+  ]
+}

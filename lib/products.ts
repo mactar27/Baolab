@@ -1,0 +1,283 @@
+export type CategoryId =
+  | "smartphones"
+  | "ordinateurs"
+  | "tablettes"
+  | "accessoires"
+  | "location"
+
+export type Platform = "apple" | "android" | "windows" | "universel"
+
+export type Product = {
+  id: string
+  name: string
+  brand: string
+  category: CategoryId
+  platform: Platform
+  price: number
+  oldPrice?: number
+  image: string
+  badge?: string
+  specs: string[]
+}
+
+export const categories: {
+  id: CategoryId
+  label: string
+  description: string
+  image: string
+}[] = [
+  {
+    id: "smartphones",
+    label: "Smartphones",
+    description: "iPhone & Android",
+    image: "/products/iphone-pro.png",
+  },
+  {
+    id: "ordinateurs",
+    label: "Ordinateurs",
+    description: "Mac & Windows",
+    image: "/products/macbook.png",
+  },
+  {
+    id: "tablettes",
+    label: "Tablettes",
+    description: "iPad & Android",
+    image: "/products/tablet.png",
+  },
+  {
+    id: "accessoires",
+    label: "Accessoires",
+    description: "Audio, clavier, charge…",
+    image: "/products/earbuds.png",
+  },
+  {
+    id: "location",
+    label: "Location",
+    description: "Location d'ordinateurs",
+    image: "/products/windows-laptop.png",
+  },
+]
+
+
+export function formatPrice(value: number): string {
+  return new Intl.NumberFormat("fr-FR").format(value) + " FCFA"
+}
+
+export const initialProducts: Product[] = [
+  // Smartphones - Apple
+  {
+    id: "iphone-15-pro",
+    name: "iPhone 15 Pro 256 Go",
+    brand: "Apple",
+    category: "smartphones",
+    platform: "apple",
+    price: 749000,
+    oldPrice: 799000,
+    image: "/products/iphone-pro.png",
+    badge: "Promo",
+    specs: ["Écran 6,1\" Super Retina", "Puce A17 Pro", "Triple caméra 48 Mpx"],
+  },
+  {
+    id: "iphone-14",
+    name: "iPhone 14 128 Go",
+    brand: "Apple",
+    category: "smartphones",
+    platform: "apple",
+    price: 519000,
+    image: "/products/iphone-pro.png",
+    specs: ["Écran 6,1\" OLED", "Puce A15 Bionic", "Double caméra 12 Mpx"],
+  },
+  // Smartphones - Android
+  {
+    id: "galaxy-s24",
+    name: "Samsung Galaxy S24 Ultra",
+    brand: "Samsung",
+    category: "smartphones",
+    platform: "android",
+    price: 699000,
+    image: "/products/android-phone.png",
+    badge: "Nouveau",
+    specs: ["Écran 6,8\" AMOLED 120 Hz", "Snapdragon 8 Gen 3", "Caméra 200 Mpx"],
+  },
+  {
+    id: "pixel-8",
+    name: "Google Pixel 8",
+    brand: "Google",
+    category: "smartphones",
+    platform: "android",
+    price: 429000,
+    image: "/products/android-phone.png",
+    specs: ["Écran 6,2\" OLED", "Puce Google Tensor G3", "IA photo avancée"],
+  },
+  {
+    id: "xiaomi-13",
+    name: "Xiaomi 13T Pro",
+    brand: "Xiaomi",
+    category: "smartphones",
+    platform: "android",
+    price: 359000,
+    image: "/products/android-phone.png",
+    specs: ["Écran 6,7\" 144 Hz", "Charge rapide 120 W", "Caméra Leica"],
+  },
+  // Ordinateurs - Apple
+  {
+    id: "macbook-air-m3",
+    name: "MacBook Air 13\" M3",
+    brand: "Apple",
+    category: "ordinateurs",
+    platform: "apple",
+    price: 899000,
+    image: "/products/macbook.png",
+    badge: "Best-seller",
+    specs: ["Puce Apple M3", "16 Go RAM / 512 Go SSD", "Autonomie 18 h"],
+  },
+  {
+    id: "macbook-pro-14",
+    name: "MacBook Pro 14\" M3 Pro",
+    brand: "Apple",
+    category: "ordinateurs",
+    platform: "apple",
+    price: 1499000,
+    image: "/products/macbook.png",
+    specs: ["Puce M3 Pro", "18 Go RAM / 1 To SSD", "Écran Liquid Retina XDR"],
+  },
+  // Ordinateurs - Windows
+  {
+    id: "dell-xps-13",
+    name: "Dell XPS 13",
+    brand: "Dell",
+    category: "ordinateurs",
+    platform: "windows",
+    price: 749000,
+    oldPrice: 820000,
+    image: "/products/windows-laptop.png",
+    badge: "Promo",
+    specs: ["Intel Core i7", "16 Go RAM / 512 Go SSD", "Écran 13,4\" InfinityEdge"],
+  },
+  {
+    id: "hp-spectre",
+    name: "HP Spectre x360",
+    brand: "HP",
+    category: "ordinateurs",
+    platform: "windows",
+    price: 689000,
+    image: "/products/windows-laptop.png",
+    specs: ["Intel Core i7", "16 Go RAM / 1 To SSD", "Écran tactile convertible"],
+  },
+  {
+    id: "lenovo-thinkpad",
+    name: "Lenovo ThinkPad X1",
+    brand: "Lenovo",
+    category: "ordinateurs",
+    platform: "windows",
+    price: 799000,
+    image: "/products/windows-laptop.png",
+    specs: ["Intel Core i7 vPro", "16 Go RAM / 512 Go SSD", "Clavier professionnel"],
+  },
+  // Tablettes
+  {
+    id: "ipad-air",
+    name: "iPad Air 11\" M2",
+    brand: "Apple",
+    category: "tablettes",
+    platform: "apple",
+    price: 469000,
+    image: "/products/tablet.png",
+    specs: ["Puce Apple M2", "128 Go", "Compatible Apple Pencil Pro"],
+  },
+  {
+    id: "galaxy-tab-s9",
+    name: "Samsung Galaxy Tab S9",
+    brand: "Samsung",
+    category: "tablettes",
+    platform: "android",
+    price: 399000,
+    image: "/products/tablet.png",
+    specs: ["Écran 11\" AMOLED", "S Pen inclus", "8 Go RAM / 128 Go"],
+  },
+  // Accessoires
+  {
+    id: "airpods-pro",
+    name: "AirPods Pro 2",
+    brand: "Apple",
+    category: "accessoires",
+    platform: "apple",
+    price: 159000,
+    image: "/products/earbuds.png",
+    badge: "Populaire",
+    specs: ["Réduction de bruit active", "Boîtier USB-C", "Audio spatial"],
+  },
+  {
+    id: "casque-sans-fil",
+    name: "Casque sans fil ANC",
+    brand: "Sony",
+    category: "accessoires",
+    platform: "universel",
+    price: 189000,
+    image: "/products/headphones.png",
+    specs: ["Réduction de bruit", "Autonomie 30 h", "Bluetooth multipoint"],
+  },
+  {
+    id: "clavier-sans-fil",
+    name: "Clavier mécanique sans fil",
+    brand: "Logitech",
+    category: "accessoires",
+    platform: "universel",
+    price: 65000,
+    image: "/products/keyboard.png",
+    specs: ["Bluetooth & USB-C", "Rétroéclairé", "Compatible Mac/Windows"],
+  },
+  {
+    id: "souris-ergonomique",
+    name: "Souris ergonomique sans fil",
+    brand: "Logitech",
+    category: "accessoires",
+    platform: "universel",
+    price: 39000,
+    image: "/products/mouse.png",
+    specs: ["Capteur haute précision", "Silencieuse", "Autonomie 70 jours"],
+  },
+  {
+    id: "chargeur-usbc",
+    name: "Chargeur rapide USB-C 65 W",
+    brand: "Anker",
+    category: "accessoires",
+    platform: "universel",
+    price: 29000,
+    image: "/products/charger.png",
+    specs: ["Charge rapide GaN", "Câble tressé inclus", "Compatible tous appareils"],
+  },
+  {
+    id: "montre-connectee",
+    name: "Montre connectée GPS",
+    brand: "Samsung",
+    category: "accessoires",
+    platform: "android",
+    price: 145000,
+    image: "/products/smartwatch.png",
+    specs: ["Suivi santé & sport", "GPS intégré", "Étanche 5 ATM"],
+  },
+  // Location
+  {
+    id: "pack-seminaire-laptops",
+    name: "Pack Séminaire - 5x Laptops Windows",
+    brand: "HP",
+    category: "location",
+    platform: "windows",
+    price: 150000,
+    image: "/products/windows-laptop.png",
+    badge: "Populaire",
+    specs: ["5x PC portables Core i5", "8 Go RAM / 256 Go SSD", "Installation & configuration incluses"],
+  },
+  {
+    id: "macbook-pro-location",
+    name: "MacBook Pro 14\" M3 Pro (Location)",
+    brand: "Apple",
+    category: "location",
+    platform: "apple",
+    price: 45000,
+    image: "/products/macbook.png",
+    badge: "Premium",
+    specs: ["Puce Apple M3 Pro", "18 Go RAM / 512 Go SSD", "Idéal pour création & vidéo"],
+  },
+]
