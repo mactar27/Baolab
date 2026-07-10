@@ -190,6 +190,76 @@ export function AdminDashboard({
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [orders, setOrders] = useState<Order[]>(initialOrders)
 
+  // Play a door-chime (ding-dong) when a new client order arrives
+  function playChimeSound() {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+      if (!AudioContextClass) return
+      const audioCtx = new AudioContextClass()
+      
+      const playNote = (frequency: number, startTime: number, duration: number) => {
+        const osc = audioCtx.createOscillator()
+        const gainNode = audioCtx.createGain()
+        osc.connect(gainNode)
+        gainNode.connect(audioCtx.destination)
+        
+        osc.type = "sine"
+        osc.frequency.setValueAtTime(frequency, startTime)
+        
+        gainNode.gain.setValueAtTime(0, startTime)
+        gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.05)
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration)
+        
+        osc.start(startTime)
+        osc.stop(startTime + duration)
+      }
+      
+      // First note (ding) - E5
+      playNote(659.25, audioCtx.currentTime, 0.4)
+      // Second note (dong) - C5
+      playNote(523.25, audioCtx.currentTime + 0.18, 0.6)
+    } catch (e) {
+      console.error("Audio playback error:", e)
+    }
+  }
+
+  // Real-time polling for new orders (every 10 seconds when authenticated)
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    let isMounted = true
+
+    async function pollOrders() {
+      try {
+        const res = await fetch("/api/admin/orders")
+        if (!res.ok) return
+        const data = await res.json()
+        if (data.success && data.orders && isMounted) {
+          setOrders((prevOrders) => {
+            // Check if there is any new order that wasn't in state
+            const hasNewOrder = data.orders.some(
+              (newOrder: any) => !prevOrders.some((oldOrder) => oldOrder.id === newOrder.id)
+            )
+
+            if (hasNewOrder && prevOrders.length > 0) {
+              playChimeSound()
+            }
+            return data.orders
+          })
+        }
+      } catch (err) {
+        console.error("Error polling orders:", err)
+      }
+    }
+
+    const interval = setInterval(pollOrders, 10000)
+
+    return () => {
+      isMounted = false
+      clearInterval(interval)
+    }
+  }, [isAuthenticated])
+
   // Search & Filter states
   const [productSearch, setProductSearch] = useState("")
   const [orderSearch, setOrderSearch] = useState("")

@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
-import { updateOrderStatus } from "@/lib/db"
+import { updateOrderStatus, getOrders } from "@/lib/db"
+
+export async function GET() {
+  try {
+    const orders = await getOrders()
+    return NextResponse.json({ success: true, orders })
+  } catch (error) {
+    console.error("API error fetching orders:", error)
+    return NextResponse.json({ error: "Internal server error." }, { status: 500 })
+  }
+}
 
 export async function PUT(request: NextRequest) {
   try {
