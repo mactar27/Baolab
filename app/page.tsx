@@ -7,6 +7,8 @@ import { LocationMap } from "@/components/location-map"
 import { SiteFooter } from "@/components/site-footer"
 import { getProductsFromDb, getSetting } from "@/lib/db"
 
+export const dynamic = "force-dynamic"
+
 export default async function HomePage() {
   const products = await getProductsFromDb()
   const heroImage = await getSetting("hero_image") || "/products/hero-devices.png"
