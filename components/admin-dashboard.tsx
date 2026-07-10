@@ -682,8 +682,8 @@ export function AdminDashboard({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {orders.slice(0, 5).map((o) => (
-                          <tr key={o.id} className="text-foreground">
+                        {orders.slice(0, 5).map((o, idx) => (
+                          <tr key={`${o.id}-${idx}`} className="text-foreground">
                             <td className="py-3.5 font-medium">{o.id}</td>
                             <td className="py-3.5">{o.customer_name}</td>
                             <td className="py-3.5 text-xs text-muted-foreground">
@@ -757,8 +757,8 @@ export function AdminDashboard({
                           </td>
                         </tr>
                       ) : (
-                        filteredProducts.map((p) => (
-                          <tr key={p.id} className="hover:bg-secondary/5 text-foreground">
+                        filteredProducts.map((p, idx) => (
+                          <tr key={`${p.id}-${idx}`} className="hover:bg-secondary/5 text-foreground">
                             <td className="p-4">
                               <div className="flex items-center gap-3">
                                 <div className="size-10 shrink-0 overflow-hidden rounded bg-secondary p-0.5">
@@ -854,8 +854,8 @@ export function AdminDashboard({
                           </td>
                         </tr>
                       ) : (
-                        filteredOrders.map((o) => (
-                          <tr key={o.id} className="hover:bg-secondary/5 align-top text-foreground">
+                        filteredOrders.map((o, idx) => (
+                          <tr key={`${o.id}-${idx}`} className="hover:bg-secondary/5 align-top text-foreground">
                             <td className="p-4">
                               <p className="font-bold">{o.id}</p>
                               <p className="font-medium text-sm mt-1">{o.customer_name}</p>
