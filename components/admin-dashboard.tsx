@@ -830,7 +830,10 @@ export function AdminDashboard({
                               </div>
                             </td>
                             <td className="p-4 capitalize">{p.category}</td>
-                            <td className="p-4 font-semibold text-primary">{formatPrice(p.price)}</td>
+                            <td className="p-4 font-semibold text-primary">
+                              {formatPrice(p.price)}
+                              {p.category === "location" && <span className="text-xs font-normal text-muted-foreground"> / jour</span>}
+                            </td>
                             <td className="p-4">
                               {p.badge && (
                                 <span className="inline-flex rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">
@@ -1177,6 +1180,11 @@ export function AdminDashboard({
                     placeholder="ex: 749000"
                     className="rounded border border-border bg-background px-3 py-1.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
+                  {pCategory === "location" && (
+                    <span className="text-[10px] text-primary font-medium">
+                      ℹ️ Affiché comme prix / jour pour la location
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1.5 sm:col-span-2">

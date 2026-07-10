@@ -58,9 +58,13 @@ export function ProductCard({ product }: { product: Product }) {
             {product.oldPrice && (
               <p className="text-xs text-muted-foreground line-through">
                 {formatPrice(product.oldPrice)}
+                {product.category === "location" && <span className="text-[10px] font-normal"> / jour</span>}
               </p>
             )}
-            <p className="text-base font-bold text-primary">{formatPrice(product.price)}</p>
+            <p className="text-base font-bold text-primary">
+              {formatPrice(product.price)}
+              {product.category === "location" && <span className="text-xs font-normal text-muted-foreground"> / jour</span>}
+            </p>
           </div>
           <Button
             size="sm"
