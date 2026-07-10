@@ -28,7 +28,7 @@ export function SiteHeader() {
             alt="Logo BAOLAB INFO"
             width={380}
             height={116}
-            className="h-10 md:h-14 w-auto object-contain dark:bg-white/95 dark:p-1.5 dark:rounded-lg"
+            className="h-16 md:h-24 w-auto object-contain dark:bg-white/95 dark:p-1.5 dark:rounded-lg"
             priority
           />
         </a>
