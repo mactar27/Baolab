@@ -149,7 +149,18 @@ async function initializeDatabase() {
     console.warn("Could not initialize MySQL database tables (MySQL may be offline). Using fallback JSON database.")
   }
 }
-initializeDatabase()
+
+let dbInitPromise: Promise<void> | null = null
+
+export function ensureDbInitialized(): Promise<void> {
+  if (!dbInitPromise) {
+    dbInitPromise = initializeDatabase()
+  }
+  return dbInitPromise
+}
+
+// Start database initialization eagerly
+ensureDbInitialized()
 
 // --- PRODUCTS CRUD ---
 
@@ -157,6 +168,7 @@ initializeDatabase()
  * Retrieves all products from the database or the local JSON fallback.
  */
 export async function getProductsFromDb(): Promise<Product[]> {
+  await ensureDbInitialized()
   try {
     const [rows] = await pool.query("SELECT * FROM products")
     const dbProducts = rows as any[]
@@ -207,6 +219,7 @@ export async function getProductsFromDb(): Promise<Product[]> {
  * Adds a new product to the database (and saves to fallback).
  */
 export async function addProduct(product: Product): Promise<boolean> {
+  await ensureDbInitialized()
   // Update fallback anyway
   const fallback = await readFallback()
   fallback.products.push(product)
@@ -240,6 +253,7 @@ export async function addProduct(product: Product): Promise<boolean> {
  * Updates an existing product (and saves to fallback).
  */
 export async function updateProduct(id: string, product: Omit<Product, "id">): Promise<boolean> {
+  await ensureDbInitialized()
   const fallback = await readFallback()
   const idx = fallback.products.findIndex((p) => p.id === id)
   if (idx !== -1) {
@@ -276,6 +290,7 @@ export async function updateProduct(id: string, product: Omit<Product, "id">): P
  * Deletes a product by ID (and saves to fallback).
  */
 export async function deleteProduct(id: string): Promise<boolean> {
+  await ensureDbInitialized()
   const fallback = await readFallback()
   fallback.products = fallback.products.filter((p) => p.id !== id)
   await writeFallback(fallback)
@@ -298,6 +313,7 @@ export async function createOrder(
   order: Omit<Order, "created_at" | "items">,
   items: OrderItem[]
 ): Promise<boolean> {
+  await ensureDbInitialized()
   // Update fallback
   const fallback = await readFallback()
   const newOrder: Order = {
@@ -343,6 +359,7 @@ export async function createOrder(
  * Retrieves all orders with their items.
  */
 export async function getOrders(): Promise<Order[]> {
+  await ensureDbInitialized()
   try {
     const [orderRows] = await pool.query("SELECT * FROM orders ORDER BY created_at DESC")
     const dbOrders = orderRows as any[]
@@ -388,6 +405,7 @@ export async function getOrders(): Promise<Order[]> {
  * Updates the status of an order.
  */
 export async function updateOrderStatus(orderId: string, status: string): Promise<boolean> {
+  await ensureDbInitialized()
   const fallback = await readFallback()
   const idx = fallback.orders.findIndex((o) => o.id === orderId)
   if (idx !== -1) {
@@ -408,6 +426,7 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
  * Retrieves a configuration setting value by key.
  */
 export async function getSetting(key: string): Promise<string | null> {
+  await ensureDbInitialized()
   try {
     const [rows] = await pool.query("SELECT `value` FROM site_settings WHERE `key` = ?", [key])
     const dbRows = rows as any[]
@@ -427,6 +446,7 @@ export async function getSetting(key: string): Promise<string | null> {
  * Sets/saves a configuration setting value.
  */
 export async function setSetting(key: string, value: string): Promise<boolean> {
+  await ensureDbInitialized()
   // Update fallback
   const fallback = await readFallback()
   if (!fallback.settings) fallback.settings = {}
