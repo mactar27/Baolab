@@ -1,6 +1,7 @@
 import mysql from "mysql2"
 import fs from "fs"
 import path from "path"
+import { kv } from "@vercel/kv"
 import { type Product, initialProducts } from "./products"
 
 // Types for Orders
@@ -44,10 +45,24 @@ const pool = mysql.createPool({
 
 export default pool
 
-// Fallback JSON DB Helpers
+// Fallback JSON / Vercel KV DB Helpers
 const fallbackFilePath = path.join(process.cwd(), "lib/data/db-fallback.json")
 
-function readFallback(): { products: Product[]; orders: Order[]; settings?: Record<string, string> } {
+async function readFallback(): Promise<{ products: Product[]; orders: Order[]; settings?: Record<string, string> }> {
+  // 1. Try Vercel KV if configured (zero-config database fallback on Vercel)
+  if (process.env.KV_REST_API_URL) {
+    try {
+      const data = await kv.get<{ products: Product[]; orders: Order[]; settings?: Record<string, string> }>("baolab_db")
+      if (data) {
+        if (!data.settings) data.settings = {}
+        return data
+      }
+    } catch (e) {
+      console.error("Error reading from Vercel KV:", e)
+    }
+  }
+
+  // 2. Fall back to local JSON file
   try {
     if (fs.existsSync(fallbackFilePath)) {
       const raw = fs.readFileSync(fallbackFilePath, "utf8")
@@ -61,7 +76,17 @@ function readFallback(): { products: Product[]; orders: Order[]; settings?: Reco
   return { products: initialProducts, orders: [], settings: {} }
 }
 
-function writeFallback(data: { products: Product[]; orders: Order[]; settings?: Record<string, string> }) {
+async function writeFallback(data: { products: Product[]; orders: Order[]; settings?: Record<string, string> }) {
+  // 1. Try Vercel KV if configured
+  if (process.env.KV_REST_API_URL) {
+    try {
+      await kv.set("baolab_db", data)
+    } catch (e) {
+      console.error("Error writing to Vercel KV:", e)
+    }
+  }
+
+  // 2. Write to local JSON file (might fail on Vercel read-only system, which is caught gracefully)
   try {
     const dir = path.dirname(fallbackFilePath)
     if (!fs.existsSync(dir)) {
@@ -69,7 +94,7 @@ function writeFallback(data: { products: Product[]; orders: Order[]; settings?: 
     }
     fs.writeFileSync(fallbackFilePath, JSON.stringify(data, null, 2), "utf8")
   } catch (e) {
-    console.error("Error writing fallback JSON file:", e)
+    // Gracefully catch read-only filesystem error on serverless hosting
   }
 }
 
@@ -174,7 +199,7 @@ export async function getProductsFromDb(): Promise<Product[]> {
   } catch (error) {
     console.error("Database fetch products error detail:", error)
     console.warn("MySQL database is not reachable. Falling back to static or local JSON products.")
-    return readFallback().products
+    return (await readFallback()).products
   }
 }
 
@@ -183,9 +208,9 @@ export async function getProductsFromDb(): Promise<Product[]> {
  */
 export async function addProduct(product: Product): Promise<boolean> {
   // Update fallback anyway
-  const fallback = readFallback()
+  const fallback = await readFallback()
   fallback.products.push(product)
-  writeFallback(fallback)
+  await writeFallback(fallback)
 
   try {
     await pool.query(
@@ -215,11 +240,11 @@ export async function addProduct(product: Product): Promise<boolean> {
  * Updates an existing product (and saves to fallback).
  */
 export async function updateProduct(id: string, product: Omit<Product, "id">): Promise<boolean> {
-  const fallback = readFallback()
+  const fallback = await readFallback()
   const idx = fallback.products.findIndex((p) => p.id === id)
   if (idx !== -1) {
     fallback.products[idx] = { ...product, id }
-    writeFallback(fallback)
+    await writeFallback(fallback)
   }
 
   try {
@@ -251,9 +276,9 @@ export async function updateProduct(id: string, product: Omit<Product, "id">): P
  * Deletes a product by ID (and saves to fallback).
  */
 export async function deleteProduct(id: string): Promise<boolean> {
-  const fallback = readFallback()
+  const fallback = await readFallback()
   fallback.products = fallback.products.filter((p) => p.id !== id)
-  writeFallback(fallback)
+  await writeFallback(fallback)
 
   try {
     await pool.query("DELETE FROM products WHERE id = ?", [id])
@@ -274,7 +299,7 @@ export async function createOrder(
   items: OrderItem[]
 ): Promise<boolean> {
   // Update fallback
-  const fallback = readFallback()
+  const fallback = await readFallback()
   const newOrder: Order = {
     ...order,
     status: order.status || "En attente",
@@ -282,7 +307,7 @@ export async function createOrder(
     items: items,
   }
   fallback.orders.unshift(newOrder)
-  writeFallback(fallback)
+  await writeFallback(fallback)
 
   try {
     // Insert order metadata
@@ -345,7 +370,7 @@ export async function getOrders(): Promise<Order[]> {
     }
 
     // Merge with local fallback orders (to prevent loss of local test orders)
-    const fallbackOrders = readFallback().orders
+    const fallbackOrders = (await readFallback()).orders
     for (const fo of fallbackOrders) {
       if (!orders.some((o) => o.id === fo.id)) {
         orders.push(fo)
@@ -355,7 +380,7 @@ export async function getOrders(): Promise<Order[]> {
     return orders
   } catch (error) {
     console.warn("MySQL database is not reachable. Falling back to local JSON orders.")
-    return readFallback().orders
+    return (await readFallback()).orders
   }
 }
 
@@ -363,11 +388,11 @@ export async function getOrders(): Promise<Order[]> {
  * Updates the status of an order.
  */
 export async function updateOrderStatus(orderId: string, status: string): Promise<boolean> {
-  const fallback = readFallback()
+  const fallback = await readFallback()
   const idx = fallback.orders.findIndex((o) => o.id === orderId)
   if (idx !== -1) {
     fallback.orders[idx].status = status
-    writeFallback(fallback)
+    await writeFallback(fallback)
   }
 
   try {
@@ -394,7 +419,7 @@ export async function getSetting(key: string): Promise<string | null> {
   }
 
   // Fallback
-  const fallback = readFallback()
+  const fallback = await readFallback()
   return fallback.settings?.[key] || null
 }
 
@@ -403,10 +428,10 @@ export async function getSetting(key: string): Promise<string | null> {
  */
 export async function setSetting(key: string, value: string): Promise<boolean> {
   // Update fallback
-  const fallback = readFallback()
+  const fallback = await readFallback()
   if (!fallback.settings) fallback.settings = {}
   fallback.settings[key] = value
-  writeFallback(fallback)
+  await writeFallback(fallback)
 
   try {
     await pool.query(
