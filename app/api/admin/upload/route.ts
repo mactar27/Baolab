@@ -19,20 +19,35 @@ export async function POST(request: NextRequest) {
     const cleanFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, "_")
     const filename = `${Date.now()}_${cleanFilename}`
 
-    // Upload path
-    const uploadDir = path.join(process.cwd(), "public/products")
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true })
+    try {
+      // Attempt to save to public folder on disk
+      const uploadDir = path.join(process.cwd(), "public/products")
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true })
+      }
+
+      const filePath = path.join(uploadDir, filename)
+      fs.writeFileSync(filePath, buffer)
+
+      return NextResponse.json({
+        success: true,
+        path: `/products/${filename}`,
+        name: file.name,
+      })
+    } catch (fsError) {
+      console.warn("Write to filesystem failed (likely serverless/read-only environment like Vercel). Falling back to Base64.", fsError)
+      
+      // Convert buffer to Base64 data URL
+      const mimeType = file.type || "image/jpeg"
+      const base64String = buffer.toString("base64")
+      const dataUri = `data:${mimeType};base64,${base64String}`
+      
+      return NextResponse.json({
+        success: true,
+        path: dataUri,
+        name: file.name,
+      })
     }
-
-    const filePath = path.join(uploadDir, filename)
-    fs.writeFileSync(filePath, buffer)
-
-    return NextResponse.json({
-      success: true,
-      path: `/products/${filename}`,
-      name: file.name,
-    })
   } catch (error) {
     console.error("API error uploading file:", error)
     return NextResponse.json({ error: "Internal server error." }, { status: 500 })
