@@ -9,9 +9,9 @@ export function CategoryGrid() {
           <a
             key={cat.id}
             href={`#${cat.id}`}
-            className="group flex items-center gap-4 rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-md"
+            className="group flex flex-col sm:flex-row items-center gap-3 sm:gap-4 rounded-xl border border-border bg-card p-3 sm:p-4 transition-all hover:shadow-md text-center sm:text-left last:col-span-2 sm:last:col-span-1"
           >
-            <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary">
+            <div className="flex size-14 sm:size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary">
               <Image
                 src={cat.image || "/placeholder.svg"}
                 alt={cat.label}
@@ -20,9 +20,9 @@ export function CategoryGrid() {
                 className="size-full object-contain p-1.5 transition-transform group-hover:scale-110"
               />
             </div>
-            <div>
-              <h3 className="font-semibold">{cat.label}</h3>
-              <p className="text-xs text-muted-foreground">{cat.description}</p>
+            <div className="flex flex-col items-center sm:items-start">
+              <h3 className="font-semibold text-sm sm:text-base leading-tight text-foreground">{cat.label}</h3>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{cat.description}</p>
             </div>
           </a>
         ))}
