@@ -191,6 +191,21 @@ export function AdminDashboard({
   const [orders, setOrders] = useState<Order[]>(initialOrders)
   const [isDeletingOrders, setIsDeletingOrders] = useState(false)
 
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    onConfirm: () => void
+    confirmText?: string
+    cancelText?: string
+    variant?: "destructive" | "primary"
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  })
+
   // Play a door-chime (ding-dong) when a new client order arrives
   function playChimeSound() {
     try {
@@ -442,23 +457,30 @@ export function AdminDashboard({
     }
   }
 
-  async function handleDeleteProduct(id: string) {
-    if (!confirm("Voulez-vous vraiment supprimer ce produit ?")) return
+  function handleDeleteProduct(id: string) {
+    setConfirmModal({
+      isOpen: true,
+      title: "Supprimer le produit",
+      message: "Voulez-vous vraiment supprimer ce produit du catalogue ? Cette action est irréversible.",
+      variant: "destructive",
+      confirmText: "Supprimer",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/admin/products/${id}`, {
+            method: "DELETE",
+          })
 
-    try {
-      const res = await fetch(`/api/admin/products/${id}`, {
-        method: "DELETE",
-      })
+          if (!res.ok) {
+            const data = await res.json()
+            throw new Error(data.error || "Erreur lors de la suppression.")
+          }
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Erreur lors de la suppression.")
+          setProducts((prev) => prev.filter((p) => p.id !== id))
+        } catch (err: any) {
+          alert(err.message || "Erreur lors de la suppression.")
+        }
       }
-
-      setProducts((prev) => prev.filter((p) => p.id !== id))
-    } catch (err: any) {
-      alert(err.message || "Erreur lors de la suppression.")
-    }
+    })
   }
 
   // --- ORDER ACTIONS ---
@@ -483,32 +505,33 @@ export function AdminDashboard({
     }
   }
 
-  async function handleDeleteAllOrders() {
-    if (
-      !confirm(
-        "Voulez-vous vraiment supprimer TOUTES les commandes ? Cette action effacera définitivement l'historique et est irréversible."
-      )
-    ) {
-      return
-    }
+  function handleDeleteAllOrders() {
+    setConfirmModal({
+      isOpen: true,
+      title: "Supprimer toutes les commandes",
+      message: "Voulez-vous vraiment supprimer TOUTES les commandes ? Cette action effacera définitivement l'historique de votre boutique et est irréversible.",
+      variant: "destructive",
+      confirmText: "Tout supprimer",
+      onConfirm: async () => {
+        setIsDeletingOrders(true)
+        try {
+          const res = await fetch("/api/admin/orders", {
+            method: "DELETE",
+          })
 
-    setIsDeletingOrders(true)
-    try {
-      const res = await fetch("/api/admin/orders", {
-        method: "DELETE",
-      })
+          if (!res.ok) {
+            const data = await res.json()
+            throw new Error(data.error || "Erreur de suppression des commandes.")
+          }
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Erreur de suppression des commandes.")
+          setOrders([])
+        } catch (err: any) {
+          alert(err.message || "Impossible de supprimer les commandes.")
+        } finally {
+          setIsDeletingOrders(false)
+        }
       }
-
-      setOrders([])
-    } catch (err: any) {
-      alert(err.message || "Impossible de supprimer les commandes.")
-    } finally {
-      setIsDeletingOrders(false)
-    }
+    })
   }
 
   // --- FILTERING ---
@@ -1259,6 +1282,58 @@ export function AdminDashboard({
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+          />
+          <div className="relative w-full max-w-md transform overflow-hidden rounded-xl bg-card border border-border p-6 shadow-2xl transition-all">
+            <div className="flex items-start gap-4">
+              <div className={`p-3 rounded-full shrink-0 ${
+                confirmModal.variant === "destructive" 
+                  ? "bg-destructive/10 text-destructive" 
+                  : "bg-primary/10 text-primary"
+              }`}>
+                {confirmModal.variant === "destructive" ? (
+                  <Trash2 className="size-6" />
+                ) : (
+                  <AlertCircle className="size-6" />
+                )}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-foreground leading-6">
+                  {confirmModal.title}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                  {confirmModal.message}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+              >
+                {confirmModal.cancelText || "Annuler"}
+              </Button>
+              <Button
+                type="button"
+                variant={confirmModal.variant === "destructive" ? "destructive" : "default"}
+                onClick={() => {
+                  confirmModal.onConfirm()
+                  setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                }}
+              >
+                {confirmModal.confirmText || "Confirmer"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
