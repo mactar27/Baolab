@@ -189,6 +189,7 @@ export function AdminDashboard({
   const [activeTab, setActiveTab] = useState<"stats" | "products" | "orders" | "settings">("stats")
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [orders, setOrders] = useState<Order[]>(initialOrders)
+  const [isDeletingOrders, setIsDeletingOrders] = useState(false)
 
   // Play a door-chime (ding-dong) when a new client order arrives
   function playChimeSound() {
@@ -479,6 +480,34 @@ export function AdminDashboard({
       )
     } catch (err: any) {
       alert(err.message || "Impossible de mettre à jour le statut.")
+    }
+  }
+
+  async function handleDeleteAllOrders() {
+    if (
+      !confirm(
+        "Voulez-vous vraiment supprimer TOUTES les commandes ? Cette action effacera définitivement l'historique et est irréversible."
+      )
+    ) {
+      return
+    }
+
+    setIsDeletingOrders(true)
+    try {
+      const res = await fetch("/api/admin/orders", {
+        method: "DELETE",
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Erreur de suppression des commandes.")
+      }
+
+      setOrders([])
+    } catch (err: any) {
+      alert(err.message || "Impossible de supprimer les commandes.")
+    } finally {
+      setIsDeletingOrders(false)
     }
   }
 
@@ -821,16 +850,30 @@ export function AdminDashboard({
           {/* TAB 3: ORDERS */}
           {activeTab === "orders" && (
             <div className="flex flex-col gap-6">
-              {/* Order Search */}
-              <div className="relative max-w-sm">
-                <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Rechercher par client, adresse, téléphone..."
-                  value={orderSearch}
-                  onChange={(e) => setOrderSearch(e.target.value)}
-                  className="w-full rounded-md border border-border bg-background pl-9 pr-3 py-1.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                />
+              {/* Order Search & Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="relative max-w-sm flex-1">
+                  <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher par client, adresse, téléphone..."
+                    value={orderSearch}
+                    onChange={(e) => setOrderSearch(e.target.value)}
+                    className="w-full rounded-md border border-border bg-background pl-9 pr-3 py-1.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                  />
+                </div>
+                {orders.length > 0 && (
+                  <Button
+                    onClick={handleDeleteAllOrders}
+                    variant="destructive"
+                    className="gap-1.5 text-xs h-9 animate-fade-in"
+                    size="sm"
+                    disabled={isDeletingOrders}
+                  >
+                    <Trash2 className="size-4" />
+                    Supprimer toutes les commandes
+                  </Button>
+                )}
               </div>
 
               {/* Orders Table */}

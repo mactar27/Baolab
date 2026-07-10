@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { updateOrderStatus, getOrders } from "@/lib/db"
+import { updateOrderStatus, getOrders, deleteAllOrders } from "@/lib/db"
 
 export async function GET() {
   try {
@@ -31,6 +31,19 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true, id, status })
   } catch (error) {
     console.error("API error updating order status:", error)
+    return NextResponse.json({ error: "Internal server error." }, { status: 500 })
+  }
+}
+
+export async function DELETE() {
+  try {
+    const success = await deleteAllOrders()
+    if (!success) {
+      return NextResponse.json({ error: "Failed to delete all orders." }, { status: 500 })
+    }
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("API error deleting all orders:", error)
     return NextResponse.json({ error: "Internal server error." }, { status: 500 })
   }
 }

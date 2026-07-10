@@ -428,6 +428,25 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
 }
 
 /**
+ * Deletes all orders from the database.
+ */
+export async function deleteAllOrders(): Promise<boolean> {
+  await ensureDbInitialized()
+  const fallback = await readFallback()
+  fallback.orders = []
+  await writeFallback(fallback)
+
+  try {
+    await pool.query("DELETE FROM order_items")
+    await pool.query("DELETE FROM orders")
+    return true
+  } catch (error) {
+    console.warn("Failed to delete all orders in MySQL. Cleared local fallback JSON.", error)
+    return true
+  }
+}
+
+/**
  * Retrieves a configuration setting value by key.
  */
 export async function getSetting(key: string): Promise<string | null> {
