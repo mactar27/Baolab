@@ -116,11 +116,16 @@ async function initializeDatabase() {
         platform VARCHAR(50) NOT NULL,
         price INT NOT NULL,
         oldPrice INT NULL,
-        image VARCHAR(255) NOT NULL,
+        image LONGTEXT NOT NULL,
         badge VARCHAR(50) NULL,
         specs JSON NOT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `)
+    try {
+      await pool.query("ALTER TABLE products MODIFY COLUMN image LONGTEXT NOT NULL;")
+    } catch (alterErr) {
+      console.warn("Could not alter products image column:", alterErr)
+    }
     await pool.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id VARCHAR(100) PRIMARY KEY,
