@@ -3,12 +3,12 @@
 import Image from "next/image"
 import { Minus, Plus, ShoppingCart, Trash2, X, ArrowLeft, Loader2, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useCart } from "@/components/cart-context"
+import { useCart, getItemSubtotal } from "@/components/cart-context"
 import { formatPrice } from "@/lib/products"
 import { useState } from "react"
 
 export function CartDrawer() {
-  const { items, total, isOpen, setOpen, remove, setQty, clear } = useCart()
+  const { items, total, isOpen, setOpen, remove, setQty, setRentalDuration, clear } = useCart()
 
   // Checkout States
   const [isCheckingOut, setIsCheckingOut] = useState(false)
@@ -38,12 +38,20 @@ export function CartDrawer() {
           customer_phone: customerPhone,
           customer_address: customerAddress,
           total_price: total,
-          items: items.map(({ product, quantity }) => ({
-            product_id: product.id,
-            product_name: product.name,
-            quantity: quantity,
-            price: product.price,
-          })),
+          items: items.map((item) => {
+            const factor = item.product.category === "location" && item.rentalDuration && item.rentalUnit
+              ? (item.rentalUnit === "mois" ? 30 : item.rentalUnit === "semaines" ? 7 : 1)
+              : 1
+            const durationText = item.product.category === "location"
+              ? ` (Location - ${item.rentalDuration} ${item.rentalUnit})`
+              : ""
+            return {
+              product_id: item.product.id,
+              product_name: `${item.product.name}${durationText}`,
+              quantity: item.quantity,
+              price: item.product.price * (item.rentalDuration ? item.rentalDuration * factor : 1),
+            }
+          }),
         }),
       })
 
@@ -255,56 +263,89 @@ export function CartDrawer() {
           /* Cart Item List */
           <>
             <ul className="flex-1 divide-y divide-border overflow-y-auto px-5">
-              {items.map(({ product, quantity }) => (
-                <li key={product.id} className="flex gap-4 py-4">
-                  <div className="size-20 shrink-0 overflow-hidden rounded-lg bg-secondary">
-                    <Image
-                      src={product.image || "/placeholder.svg"}
-                      alt={product.name}
-                      width={80}
-                      height={80}
-                      className="size-full object-contain p-1"
-                    />
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{product.brand}</p>
-                      </div>
-                      <button
-                        onClick={() => remove(product.id)}
-                        className="text-muted-foreground transition-colors hover:text-destructive"
-                        aria-label={`Retirer ${product.name}`}
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
+              {items.map((item) => {
+                const { product, quantity } = item
+                return (
+                  <li key={product.id} className="flex gap-4 py-4">
+                    <div className="size-20 shrink-0 overflow-hidden rounded-lg bg-secondary">
+                      <Image
+                        src={product.image || "/placeholder.svg"}
+                        alt={product.name}
+                        width={80}
+                        height={80}
+                        className="size-full object-contain p-1"
+                      />
                     </div>
-                    <div className="mt-auto flex items-center justify-between">
-                      <div className="flex items-center rounded-md border border-border">
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">{product.brand}</p>
+                          {product.category === "location" && item.rentalDuration && item.rentalUnit && (
+                            <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground bg-secondary/40 px-2 py-1 rounded w-fit">
+                              <span className="font-semibold text-primary">Durée :</span>
+                              <input
+                                type="number"
+                                min={1}
+                                value={item.rentalDuration}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value, 10) || 1
+                                  setRentalDuration(product.id, val, item.rentalUnit!)
+                                }}
+                                className="w-8 rounded border border-border bg-background px-1 py-0.5 text-center text-[10px] font-semibold focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                              />
+                              <select
+                                value={item.rentalUnit}
+                                onChange={(e) => {
+                                  setRentalDuration(
+                                    product.id,
+                                    item.rentalDuration!,
+                                    e.target.value as any
+                                  )
+                                }}
+                                className="rounded border border-border bg-background px-1 py-0.5 text-[10px] focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                              >
+                                <option value="jours">Jour(s)</option>
+                                <option value="semaines">Semaine(s)</option>
+                                <option value="mois">Mois</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
                         <button
-                          onClick={() => setQty(product.id, quantity - 1)}
-                          className="flex size-7 items-center justify-center text-muted-foreground hover:text-primary"
-                          aria-label="Diminuer la quantité"
+                          onClick={() => remove(product.id)}
+                          className="text-muted-foreground transition-colors hover:text-destructive"
+                          aria-label={`Retirer ${product.name}`}
                         >
-                          <Minus className="size-3.5" />
-                        </button>
-                        <span className="w-8 text-center text-sm font-medium">{quantity}</span>
-                        <button
-                          onClick={() => setQty(product.id, quantity + 1)}
-                          className="flex size-7 items-center justify-center text-muted-foreground hover:text-primary"
-                          aria-label="Augmenter la quantité"
-                        >
-                          <Plus className="size-3.5" />
+                          <Trash2 className="size-4" />
                         </button>
                       </div>
-                      <span className="text-sm font-semibold text-primary">
-                        {formatPrice(product.price * quantity)}
-                      </span>
+                      <div className="mt-auto flex items-center justify-between">
+                        <div className="flex items-center rounded-md border border-border">
+                          <button
+                            onClick={() => setQty(product.id, quantity - 1)}
+                            className="flex size-7 items-center justify-center text-muted-foreground hover:text-primary"
+                            aria-label="Diminuer la quantité"
+                          >
+                            <Minus className="size-3.5" />
+                          </button>
+                          <span className="w-8 text-center text-sm font-medium">{quantity}</span>
+                          <button
+                            onClick={() => setQty(product.id, quantity + 1)}
+                            className="flex size-7 items-center justify-center text-muted-foreground hover:text-primary"
+                            aria-label="Augmenter la quantité"
+                          >
+                            <Plus className="size-3.5" />
+                          </button>
+                        </div>
+                        <span className="text-sm font-semibold text-primary">
+                          {formatPrice(getItemSubtotal(item))}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                )
+              })}
             </ul>
 
             <div className="border-t border-border px-5 py-4">
