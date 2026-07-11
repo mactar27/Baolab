@@ -175,19 +175,19 @@
       ]
     },
     {
-      "id": "airpods-pro",
       "name": "AirPods Pro 2",
       "brand": "Apple",
       "category": "accessoires",
       "platform": "apple",
-      "price": 159000,
+      "price": 100000,
       "image": "/products/earbuds.png",
       "badge": "Populaire",
       "specs": [
         "Réduction de bruit active",
         "Boîtier USB-C",
         "Audio spatial"
-      ]
+      ],
+      "id": "airpods-pro"
     },
     {
       "id": "casque-sans-fil",
@@ -301,5 +301,6 @@
         }
       ]
     }
-  ]
+  ],
+  "settings": {}
 }
